@@ -35,6 +35,18 @@ resolution = 10
 shawnigan_bbox = BBox(bbox=shawnigan_coords_wgs84, crs=CRS.WGS84)
 shawnigan_size = bbox_to_dimensions(shawnigan_bbox, resolution=resolution)
 
+#create bounding box for tofino area
+tofino_coords_wgs84 = [-125.935464,49.040161,-125.675225,49.155257]
+resolution = 10
+tofino_bbox = BBox(bbox=tofino_coords_wgs84, crs=CRS.WGS84)
+tofino_size = bbox_to_dimensions(tofino_bbox, resolution=resolution)
+
+#create bounding box for chilliwack lake
+chilliwack_coords_wgs84 = [-121.504101,49.000920,-121.361278,49.102623]
+resolution = 10
+chilliwack_bbox = BBox(bbox=chilliwack_coords_wgs84, crs=CRS.WGS84)
+chilliwack_size = bbox_to_dimensions(chilliwack_bbox, resolution=resolution)
+
 #=============================================================================
 # LOAD EVALSCRIPTS
 #=============================================================================
@@ -45,13 +57,15 @@ evalscript = yaml.load(open('evalscripts.yaml'), Loader=yaml.FullLoader)
 #=============================================================================
 # CREATE TIMESLOTS FOR GIF
 #=============================================================================
-#creats an array of time intervals, in this case each month of 2019
-start = datetime.datetime(2019,1,1)
-end = datetime.datetime(2019,12,31)
-n_chunks = 13
-tdelta = (end - start) / n_chunks
-edges = [(start + i*tdelta).date().isoformat() for i in range(n_chunks)]
-slots_2019 = [(edges[i], edges[i+1]) for i in range(len(edges)-1)]
+#creates an array of time intervals for the 12 months of a specified year
+def year_time_slot(year):
+	start = datetime.datetime(year,1,1)
+	end = datetime.datetime(year,12,31)
+	n_chunks = 13
+	tdelta = (end - start) / n_chunks
+	edges = [(start + i*tdelta).date().isoformat() for i in range(n_chunks)]
+	
+	return [(edges[i], edges[i+1]) for i in range(len(edges)-1)]
 
 #=============================================================================
 # REQUESTS BUILDER
@@ -87,20 +101,47 @@ def get_request(bbox, size, config, time_interval, dl_dir=None, \
 	)
 
 def main():
-    #create a list of requests for shawnigan lake area for NDVI
-    list_of_requests = [get_request(bbox=shawnigan_bbox,		    \
-    								size=shawnigan_size,		    \
-    								config=config,					\
-    								time_interval=slot,   	        \
-    								dl_dir=download_dir,			\
-    								evalscript=evalscript['NDVI'])  \
-    								for slot in slots_2019]
-    #create list of image packages
-    list_of_images = [request.get_data() for request in list_of_requests]
+	location = input("What location would you like to study? \
+    \n(options: shawnigan, tofino, chilliwack) -> ")
+	year = input("What year? -> ")
+	index = input("What index would you like to see? \
+    \n(options: true_color(default), NDVI, NDSI, LAI) -> ")
+	
+	slots = year_time_slot(int(year))
+	
+	if location == "shawnigan":
+	    list_of_requests = [get_request(bbox=shawnigan_bbox,		       \
+	    								size=shawnigan_size,		       \
+	    								config=config,					   \
+	    								time_interval=slot,                \
+	    								dl_dir=download_dir,			   \
+	    								evalscript=evalscript[index])      \
+	    								for slot in slots]
+	elif location == "tofino":
+	    list_of_requests = [get_request(bbox=tofino_bbox,		           \
+	    								size=tofino_size,		           \
+	    								config=config,					   \
+	    								time_interval=slot,                \
+	    								dl_dir=download_dir,			   \
+	    								evalscript=evalscript[index])      \
+	    								for slot in slots]
+	elif location == "chilliwack":
+	    list_of_requests = [get_request(bbox=chilliwack_bbox,		       \
+	    								size=chilliwack_size,		       \
+	    								config=config,					   \
+	    								time_interval=slot,                \
+	    								dl_dir=download_dir,			   \
+	    								evalscript=evalscript[index])      \
+	    								for slot in slots]
+
+	#create list of image packages
+	#change save_data=False if you dont want download data to disk
+	list_of_images = [request.get_data(save_data=True) \
+	for request in list_of_requests]
     #create list of images
-    list_of_images_fr = [image[0] for image in list_of_images]
+	list_of_images_fr = [image[0] for image in list_of_images]
     #create annimation for array of images
-    plot_animation(list_of_images_fr, factor=.8/255, clip_range=(0,1))
+	plot_animation(list_of_images_fr, factor=.8/255, clip_range=(0,1))
 
 
 if __name__ == "__main__":
