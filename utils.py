@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-def plot_image(image, factor=1.0, clip_range = None, **kwargs):
+def plot_image(image, factor=1.0, clip_range=None, **kwargs):
     """
     Utility function for plotting RGB images.
     """
@@ -19,7 +19,7 @@ def plot_image(image, factor=1.0, clip_range = None, **kwargs):
     plt.show()
 
 
-def plot_animation(images, factor=1.0, clip_range = None, **kwargs):
+def plot_animation(images, factor=1.0, clip_range=None, **kwargs):
     """
     Utility function for plotting RGB images in an animation/gif.
     """
@@ -32,5 +32,5 @@ def plot_animation(images, factor=1.0, clip_range = None, **kwargs):
         ax.imshow(images[i] * factor)
         return images[i]
 
-    animation = FuncAnimation(fig, func = animation_frame)
+    animation = FuncAnimation(fig, func=animation_frame, frames=len(images), repeat = True)
     plt.show()
