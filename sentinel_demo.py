@@ -2,6 +2,7 @@ from sentinelhub import SHConfig, MimeType, CRS, BBox, SentinelHubRequest,   \
 SentinelHubDownloadClient, DataCollection, bbox_to_dimensions, DownloadRequest
 import os
 import datetime
+import yaml
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import plot_image, plot_animation
@@ -35,21 +36,25 @@ shawnigan_bbox = BBox(bbox=shawnigan_coords_wgs84, crs=CRS.WGS84)
 shawnigan_size = bbox_to_dimensions(shawnigan_bbox, resolution=resolution)
 
 #create bounding box for tofino area
-shawnigan_coords_wgs84 = [-123.696731,48.575624,-123.564895,48.670031]
+tofino_coords_wgs84 = [-126.033804,48.918678,-125.429556,49.213799]
 resolution = 10
-shawnigan_bbox = BBox(bbox=shawnigan_coords_wgs84, crs=CRS.WGS84)
-shawnigan_size = bbox_to_dimensions(shawnigan_bbox, resolution=resolution)
+tofino_bbox = BBox(bbox=tofino_coords_wgs84, crs=CRS.WGS84)
+tofino_size = bbox_to_dimensions(tofino_bbox, resolution=resolution)
 
-#create bounding box for chilliwak lake
-shawnigan_coords_wgs84 = [-123.696731,48.575624,-123.564895,48.670031]
+#create bounding box for chilliwack lake
+chilliwack_coords_wgs84 = [-121.596894,48.991100,-121.243272,49.162019]
 resolution = 10
-shawnigan_bbox = BBox(bbox=shawnigan_coords_wgs84, crs=CRS.WGS84)
-shawnigan_size = bbox_to_dimensions(shawnigan_bbox, resolution=resolution)
+chilliwack_bbox = BBox(bbox=chilliwack_coords_wgs84, crs=CRS.WGS84)
+chilliwack_size = bbox_to_dimensions(chilliwack_bbox, resolution=resolution)
 
 #=============================================================================
 # CREATE EVALSCRIPTS
 #=============================================================================
 #the evalscript is used to select what colour bands we want
+
+#evalscripts are stored in evalscripts.yaml
+evalscripts = yaml.load(open('evalscripts.yaml'), Loader=yaml.FullLoader)
+
 
 evalscript_true_color = """
     //VERSION=3
