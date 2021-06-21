@@ -70,6 +70,7 @@ def year_time_slot(year):
 #=============================================================================
 # REQUESTS BUILDER
 #=============================================================================
+#basically a wrapper for SentinelHubRequest()
 def get_request(bbox, size, config, time_interval, dl_dir=None, \
 				evalscript=evalscript['true_color']):
 	"""Generates a request
