@@ -1,6 +1,9 @@
-#files to ignore
+#file types to ignore
 *.DS_Store
 *.pyc
+
+#files to ignore
+SHconfig.yaml
 
 #directories to ignore
 env/
