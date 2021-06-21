@@ -12,12 +12,12 @@ download_dir = "data"
 #=============================================================================
 # SETUP CONFIGS
 #=============================================================================
-
+SHconfig = yaml.load(open('SHconfig.yaml'), Loader=yaml.FullLoader)
 #set configs for sentinel API
 config = SHConfig()
-config.instance_id = '49f1ba81-5174-4d9e-a532-33681ee90e3c'
-config.sh_client_id = 'a20966ba-df0a-45f5-b81b-00526e40dc2c'
-config.sh_client_secret = '?jrfwIJ&#dbc@[gg;L?3m<M^9x,!>3_UfQtR/HI#'
+config.instance_id = SHconfig['instance_id']
+config.sh_client_id = SHconfig['sh_client_id']
+config.sh_client_secret = SHconfig['sh_client_secret']
 
 #check that authorization is added
 if not config.sh_client_id or not config.sh_client_secret:
@@ -48,67 +48,16 @@ chilliwack_bbox = BBox(bbox=chilliwack_coords_wgs84, crs=CRS.WGS84)
 chilliwack_size = bbox_to_dimensions(chilliwack_bbox, resolution=resolution)
 
 #=============================================================================
-# CREATE EVALSCRIPTS
+# LOAD EVALSCRIPTS
 #=============================================================================
-#the evalscript is used to select what colour bands we want
+#the evalscript is used to select what colour bands we want and  
+#they are stored in evalscripts.yaml
+evalscript = yaml.load(open('evalscripts.yaml'), Loader=yaml.FullLoader)
 
-#evalscripts are stored in evalscripts.yaml
-evalscripts = yaml.load(open('evalscripts.yaml'), Loader=yaml.FullLoader)
-
-
-evalscript_true_color = """
-    //VERSION=3
-
-    function setup() {
-        return {
-            input: [{
-                bands: ["B02", "B03", "B04"]
-            }],
-            output: {
-                bands: 3
-            }
-        };
-    }
-
-    function evaluatePixel(sample) {
-        return [sample.B04, sample.B03, sample.B02];
-    }
-"""
-
-evalscript_NDVI = """
-//VERSION=3
-
-function setup() {
-  return {
-    input: ["B04", "B08"],
-    output: { bands: 3 }
-  };
-}
-
-function evaluatePixel(sample) {
-    let ndvi = (sample.B08 - sample.B04) / (sample.B08 + sample.B04);
-
-return colorBlend(ndvi,
-   [-0.2, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 ],
-   [[0, 0, 0],                               //  < -.2 = #000000 (black)
-    [165/255,0,38/255],        //  -> 0 = #a50026
-    [215/255,48/255,39/255],   //  -> .1 = #d73027
-    [244/255,109/255,67/255],  //  -> .2 = #f46d43
-    [253/255,174/255,97/255],  //  -> .3 = #fdae61
-    [254/255,224/255,139/255], //  -> .4 = #fee08b
-    [255/255,255/255,191/255], //  -> .5 = #ffffbf
-    [217/255,239/255,139/255], //  -> .6 = #d9ef8b
-    [166/255,217/255,106/255], //  -> .7 = #a6d96a
-    [102/255,189/255,99/255],  //  -> .8 = #66bd63
-    [26/255,152/255,80/255],   //  -> .9 = #1a9850
-    [0,104/255,55/255]         //  -> 1.0 = #006837
-   ]);
-}
-"""
 #=============================================================================
 # CREATE TIMESLOTS FOR GIF
 #=============================================================================
-#creats an array of time intervals in this case each month of 2019
+#creats an array of time intervals, in this case each month of 2019
 start = datetime.datetime(2019,1,1)
 end = datetime.datetime(2019,12,31)
 n_chunks = 13
@@ -117,10 +66,10 @@ edges = [(start + i*tdelta).date().isoformat() for i in range(n_chunks)]
 slots_2019 = [(edges[i], edges[i+1]) for i in range(len(edges)-1)]
 
 #=============================================================================
-# GENERATE REQUESTS
+# REQUESTS BUILDER
 #=============================================================================
 def get_request(bbox, size, config, time_interval, dl_dir=None, \
-				evalscript=evalscript_true_color):
+				evalscript=evalscript['true_color']):
 	"""Generates a request
 		Args: 
 			bbox(int array) : bounding coordinates
@@ -149,17 +98,22 @@ def get_request(bbox, size, config, time_interval, dl_dir=None, \
 	    config=config
 	)
 
-#create a list of requests for shawnigan lake area for NDVI
-list_of_requests = [get_request(bbox=shawnigan_bbox,		    \
-								size=shawnigan_size,		    \
-								config=config,					\
-								time_interval=slot,   	 	    \
-								dl_dir=download_dir,			\
-								evalscript=evalscript_NDVI)     \
-								for slot in slots_2019]
-#create list of image packages
-list_of_images = [request.get_data() for request in list_of_requests]
-#create list of images
-list_of_images_fr = [image[0] for image in list_of_images]
-#create annimation for array of images
-plot_animation(list_of_images_fr, factor=.8/255, clip_range=(0,1))
+def main():
+    #create a list of requests for shawnigan lake area for NDVI
+    list_of_requests = [get_request(bbox=shawnigan_bbox,		    \
+    								size=shawnigan_size,		    \
+    								config=config,					\
+    								time_interval=slot,   	 	    \
+    								dl_dir=download_dir,			\
+    								evalscript=evalscript['NDVI'])     \
+    								for slot in slots_2019]
+    #create list of image packages
+    list_of_images = [request.get_data() for request in list_of_requests]
+    #create list of images
+    list_of_images_fr = [image[0] for image in list_of_images]
+    #create annimation for array of images
+    plot_animation(list_of_images_fr, factor=.8/255, clip_range=(0,1))
+
+
+if __name__ == "__main__":
+    main()
