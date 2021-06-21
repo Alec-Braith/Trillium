@@ -8,3 +8,4 @@ SHconfig.yaml
 #directories to ignore
 env/
 __pycashe__/
+SHconfig.yaml
