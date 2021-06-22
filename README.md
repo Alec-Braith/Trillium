@@ -36,7 +36,10 @@ Once cloned onto a local repo:
 3) Choose your inputs
 4) A matplotlib annimation will display the images but also in the directory "data" will be downloads of all the images
 
-
+## Creators
+[Tristan Cusi](https://github.com/cusitristan) </br>
+[Alec Braithwaite](https://github.com/Alec-Braith) </br>
+[Cole Dodd](https://github.com/coledodd)
 
 
 [wiki]: https://en.wikipedia.org/wiki/Trillium_ovatum
